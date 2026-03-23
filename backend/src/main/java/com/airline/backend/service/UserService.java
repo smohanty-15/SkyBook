@@ -10,4 +10,7 @@ public interface UserService {
     User getUserById(Long id);
     List<User> getAllUsers();
     boolean existsByEmail(String email);
+    void forgotPassword(String email);
+    void resetPassword(String token, String newPassword);
+    void updateProfile(Long id, RegisterUserRequest request);
 }

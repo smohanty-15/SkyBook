@@ -1,20 +1,19 @@
 package com.airline.backend.controller;
 
-import com.airline.backend.dto.ApiResponse;
-import com.airline.backend.dto.LoginRequest;
-import com.airline.backend.entity.Admin;
-import com.airline.backend.entity.Booking;
-import com.airline.backend.entity.Flight;
-import com.airline.backend.service.AdminService;
-import com.airline.backend.service.BookingService;
-import com.airline.backend.service.FlightService;
+import com.airline.backend.dto.*;
+import com.airline.backend.entity.*;
+import com.airline.backend.security.JwtUtil;
+import com.airline.backend.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/admin")
 @CrossOrigin(origins = "*")
@@ -24,6 +23,8 @@ public class AdminController {
     private final AdminService adminService;
     private final FlightService flightService;
     private final BookingService bookingService;
+    private final UserService userService;
+    private final JwtUtil jwtUtil;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Admin>> register(
@@ -40,19 +41,27 @@ public class AdminController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<Admin>> login(
+    public ResponseEntity<ApiResponse<AuthResponse>> login(
             @Valid @RequestBody LoginRequest request) {
         try {
             Admin admin = adminService.loginAdmin(
                     request.getEmail(), request.getPassword());
             admin.setPassword(null);
-            return ResponseEntity.ok(
-                    ApiResponse.ok("Admin login successful", admin));
+
+            String accessToken  = jwtUtil.generateToken(admin.getEmail(), "ADMIN");
+            String refreshToken = jwtUtil.generateRefreshToken(admin.getEmail());
+
+            AuthResponse authResponse = new AuthResponse(
+                    accessToken, refreshToken, "Bearer", "ADMIN", admin);
+
+            return ResponseEntity.ok(ApiResponse.ok("Admin login successful", authResponse));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.error(e.getMessage()));
         }
     }
+
+    // ── Flight Management ──────────────────────────────
 
     @PostMapping("/flights")
     public ResponseEntity<ApiResponse<Flight>> addFlight(
@@ -75,8 +84,7 @@ public class AdminController {
             Flight updated = flightService.editFlight(id, flight);
             bookingService.updateBookingStatusByFlightStatus(
                     id, updated.getFlightStatus());
-            return ResponseEntity.ok(
-                    ApiResponse.ok("Flight updated successfully", updated));
+            return ResponseEntity.ok(ApiResponse.ok("Flight updated successfully", updated));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(ApiResponse.error(e.getMessage()));
@@ -85,26 +93,35 @@ public class AdminController {
 
     @GetMapping("/flights")
     public ResponseEntity<ApiResponse<List<Flight>>> getAllFlights() {
-        List<Flight> flights = flightService.getAllFlights();
-        return ResponseEntity.ok(ApiResponse.ok("All flights fetched", flights));
+        return ResponseEntity.ok(
+                ApiResponse.ok("All flights fetched", flightService.getAllFlights()));
     }
 
     @GetMapping("/flights/{id}")
-    public ResponseEntity<ApiResponse<Flight>> getFlightById(
-            @PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Flight>> getFlightById(@PathVariable Long id) {
         try {
-            Flight flight = flightService.getFlightById(id);
-            return ResponseEntity.ok(ApiResponse.ok("Flight fetched", flight));
+            return ResponseEntity.ok(
+                    ApiResponse.ok("Flight fetched", flightService.getFlightById(id)));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(ApiResponse.error(e.getMessage()));
         }
     }
 
+    // ── Booking Management ─────────────────────────────
+
     @GetMapping("/bookings")
     public ResponseEntity<ApiResponse<List<Booking>>> getAllBookings() {
-        List<Booking> bookings = bookingService.getAllBookings();
         return ResponseEntity.ok(
-                ApiResponse.ok("All bookings fetched", bookings));
+                ApiResponse.ok("All bookings fetched", bookingService.getAllBookings()));
+    }
+
+    // ── User Management ────────────────────────────────
+
+    @GetMapping("/users")
+    public ResponseEntity<ApiResponse<List<User>>> getAllUsers() {
+        List<User> users = userService.getAllUsers();
+        users.forEach(u -> u.setPassword(null));
+        return ResponseEntity.ok(ApiResponse.ok("All users fetched", users));
     }
 }
