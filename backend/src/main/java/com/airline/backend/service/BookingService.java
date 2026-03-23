@@ -13,4 +13,5 @@ public interface BookingService {
     List<Booking> getBookingsByUserId(Long userId);
     void cancelBooking(Long bookingId);
     void updateBookingStatusByFlightStatus(Long flightId, FlightStatus flightStatus);
+    List<Booking> getBookingsByFlightId(Long flightId);
 }

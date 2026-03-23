@@ -5,7 +5,13 @@ import com.airline.backend.entity.FlightStatus;
 import com.airline.backend.repository.FlightRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @Slf4j
@@ -17,7 +23,7 @@ public class FlightServiceImpl implements FlightService {
 
     @Override
     public Flight addFlight(Flight flight) {
-        log.info("Adding new flight: {}", flight.getFlightNumber());
+        log.info("Adding flight: {}", flight.getFlightNumber());
         return flightRepository.save(flight);
     }
 
@@ -25,7 +31,7 @@ public class FlightServiceImpl implements FlightService {
     public Flight editFlight(Long id, Flight updatedFlight) {
         Flight existing = flightRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException(
-                        "Flight not found with id: " + id));
+                        "Flight not found: " + id));
         existing.setFlightNumber(updatedFlight.getFlightNumber());
         existing.setDepartureDate(updatedFlight.getDepartureDate());
         existing.setSource(updatedFlight.getSource());
@@ -35,7 +41,7 @@ public class FlightServiceImpl implements FlightService {
         existing.setPrice(updatedFlight.getPrice());
         existing.setAvailableSeats(updatedFlight.getAvailableSeats());
         existing.setFlightStatus(updatedFlight.getFlightStatus());
-        log.info("Updating flight id: {}", id);
+        log.info("Updated flight id: {}", id);
         return flightRepository.save(existing);
     }
 
@@ -43,7 +49,7 @@ public class FlightServiceImpl implements FlightService {
     public Flight getFlightById(Long id) {
         return flightRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException(
-                        "Flight not found with id: " + id));
+                        "Flight not found: " + id));
     }
 
     @Override
@@ -61,5 +67,28 @@ public class FlightServiceImpl implements FlightService {
         return flightRepository
                 .findBySourceIgnoreCaseAndDestinationIgnoreCaseAndFlightStatus(
                         source, destination, FlightStatus.SCHEDULED);
+    }
+
+    @Override
+    public List<Flight> searchFlightsByDate(String source,
+                                            String destination,
+                                            LocalDate date) {
+        return flightRepository
+                .findBySourceIgnoreCaseAndDestinationIgnoreCaseAndDepartureDateAndFlightStatus(
+                        source, destination, date, FlightStatus.SCHEDULED);
+    }
+
+    @Override
+    public List<Flight> getFlightsByDate(LocalDate date) {
+        return flightRepository.findByDepartureDateAndFlightStatus(
+                date, FlightStatus.SCHEDULED);
+    }
+
+    @Override
+    public Page<Flight> getScheduledFlightsPaged(int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by(Sort.Direction.ASC, sortBy));
+        return flightRepository.findByFlightStatus(
+                FlightStatus.SCHEDULED, pageable);
     }
 }

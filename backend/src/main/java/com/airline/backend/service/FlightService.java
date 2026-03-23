@@ -1,6 +1,9 @@
 package com.airline.backend.service;
 
 import com.airline.backend.entity.Flight;
+import org.springframework.data.domain.Page;
+
+import java.time.LocalDate;
 import java.util.List;
 
 public interface FlightService {
@@ -10,4 +13,7 @@ public interface FlightService {
     List<Flight> getAllFlights();
     List<Flight> getScheduledFlights();
     List<Flight> searchFlights(String source, String destination);
+    List<Flight> searchFlightsByDate(String source, String destination, LocalDate date);
+    List<Flight> getFlightsByDate(LocalDate date);
+    Page<Flight> getScheduledFlightsPaged(int page, int size, String sortBy);
 }

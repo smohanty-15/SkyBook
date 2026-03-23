@@ -18,6 +18,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final FlightRepository flightRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -62,7 +63,11 @@ public class BookingServiceImpl implements BookingService {
         log.info("Booking confirmed for user: {} on flight: {} PNR: {}",
                 user.getEmail(), flight.getFlightNumber(), pnr);
 
-        return bookingRepository.save(booking);
+        Booking savedBooking = bookingRepository.save(booking);
+
+        emailService.sendBookingConfirmation(savedBooking);
+
+        return savedBooking;
     }
 
     @Override
@@ -77,6 +82,14 @@ public class BookingServiceImpl implements BookingService {
         return bookingRepository.findByPnr(pnr)
                 .orElseThrow(() -> new RuntimeException(
                         "No booking found with PNR: " + pnr));
+    }
+
+    @Override
+    public List<Booking> getBookingsByFlightId(Long flightId) {
+        Flight flight = flightRepository.findById(flightId)
+                .orElseThrow(() -> new RuntimeException(
+                        "Flight not found: " + flightId));
+        return bookingRepository.findByFlight(flight);
     }
 
     @Override
@@ -109,6 +122,9 @@ public class BookingServiceImpl implements BookingService {
 
         booking.setBookingStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
+
+        emailService.sendCancellationEmail(booking);
+
         log.info("Booking cancelled: {}", bookingId);
     }
 
