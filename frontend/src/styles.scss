@@ -1,0 +1,92 @@
+// Global styles
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+  color: #333;
+}
+
+// Navbar
+.navbar-brand {
+  font-weight: bold;
+  font-size: 1.5rem;
+  color: #0d6efd !important;
+}
+
+// Cards
+.card {
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border: none;
+}
+
+// Buttons
+.btn-primary {
+  background-color: #0d6efd;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 24px;
+  font-weight: 500;
+}
+
+.btn-primary:hover {
+  background-color: #0b5ed7;
+}
+
+// Table
+.table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table thead {
+  background-color: #0d6efd;
+  color: white;
+}
+
+// Badge
+.badge-confirmed {
+  background-color: #198754;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.badge-cancelled {
+  background-color: #dc3545;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.badge-flightcancelled {
+  background-color: #ffc107;
+  color: #333;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+// Page titles
+.page-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #0d6efd;
+  margin-bottom: 20px;
+}
+
+// Forms
+.form-control {
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  padding: 10px 15px;
+}
+
+.form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
